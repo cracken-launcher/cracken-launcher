@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cracken</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Orbitron',Arial,Helvetica,sans-serif;background:#000;color:white;overflow-x:hidden}
+body::before{content:"";position:fixed;width:200%;height:200%;background:linear-gradient(45deg,#000,#021f0d,#0c7a34,#021f0d,#000);background-size:400% 400%;animation:gradientMove 12s ease infinite;z-index:-2}
+@keyframes gradientMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+header{position:sticky;top:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);padding:18px 40px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(50,255,126,0.2)}
+.logo{font-size:28px;color:#32ff7e;text-shadow:0 0 15px #32ff7e;display:flex;align-items:center;gap:10px}
+.logo img{height:40px}
+nav a{margin-left:20px;text-decoration:none;color:white}
+.right-menu{display:flex;align-items:center;gap:15px}
+.discord-btn{background:#5865F2;border:none;padding:8px 14px;border-radius:6px;color:white;cursor:pointer;display:flex;align-items:center;gap:8px}
+.launcher-btn{background:#32ff7e;border:none;padding:8px 14px;border-radius:6px;color:black;cursor:pointer;font-weight:bold}
+.launcher-panel{position:fixed;top:70px;right:20px;width:260px;background:#000;border:1px solid rgba(50,255,126,0.4);border-radius:10px;padding:15px;display:none;z-index:10}
+.launcher-item{padding:10px;border-bottom:1px solid rgba(50,255,126,0.2);cursor:pointer;transition:0.3s}
+.launcher-item:hover{background:rgba(50,255,126,0.1)}
+.hero{text-align:center;padding:120px 20px 60px 20px}
+.hero h1{font-size:60px;margin:0;color:#32ff7e}
+.search input{padding:14px;width:300px;border-radius:8px;border:none;margin-top:25px}
+.section{padding:40px}
+.games-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+.game-card{background:rgba(0,0,0,0.6);border:1px solid rgba(50,255,126,0.2);padding:15px;border-radius:10px;transition:0.3s;cursor:pointer}
+.game-card:hover{transform:scale(1.05);border-color:#32ff7e}
+.game-card img{width:100%;border-radius:6px;height:130px;object-fit:cover}
+.game-card h3{color:#32ff7e;font-size:16px}
+.popular-title{color:#32ff7e;margin-bottom:20px}
+.game-page{position:fixed;left:0;top:0;width:100%;height:100%;background:#000;padding:40px;display:none;overflow:auto}
+.game-page img{max-width:500px;width:100%;border-radius:10px}
+.download-btn{background:#32ff7e;color:black;padding:12px 18px;border-radius:8px;display:inline-block;margin-top:20px;text-decoration:none;font-weight:bold}
+.back{margin-bottom:20px;display:inline-block;cursor:pointer;color:#32ff7e}
+footer{text-align:center;padding:25px;background:rgba(0,0,0,0.7);margin-top:60px}
+.discord-avatar{width:24px;height:24px;border-radius:50%;object-fit:cover}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><img src="logo.png" alt="Cracken">CRACKEN</div>
+  <nav>
+    <a href="#">Accueil</a>
+    <a href="#popular">Populaires</a>
+  </nav>
+  <div class="right-menu">
+    <button class="discord-btn" onclick="discordLogin()">
+      <img class="discord-avatar" id="discordAvatar" src="" alt="" style="display:none">
+      <span id="discordText">Discord</span>
+    </button>
+    <button class="launcher-btn" onclick="toggleLauncher()">Launcher</button>
+  </div>
+</header>
+
+<div class="launcher-panel" id="launcherPanel">
+  <div class="launcher-item">🎮 Installer jeux</div>
+  <div class="launcher-item">⬇️ Téléchargements</div>
+  <div class="launcher-item">⚙️ Paramètres</div>
+  <div class="launcher-item">🧩 Plugins</div>
+</div>
+
+<section class="hero">
+  <h1>CRACKEN</h1>
+  <p>Trouve tes jeux PC préférés</p>
+  <div class="search">
+    <input id="search" placeholder="Rechercher un jeu...">
+  </div>
+</section>
+
+<section class="section">
+  <h2 class="popular-title">⭐ Jeux populaires</h2>
+  <div class="games-grid" id="popularGames"></div>
+</section>
+
+<section class="section">
+  <h2 class="popular-title">🎮 Tous les jeux</h2>
+  <div class="games-grid" id="allGames"></div>
+</section>
+
+<div class="game-page" id="gamePage">
+  <div class="back" onclick="closeGame()">← Retour</div>
+  <h1 id="gameTitle"></h1>
+  <img id="gameImage">
+  <p id="gameDesc"></p>
+  <a class="download-btn" href="#">📥 Télécharger</a>
+</div>
+
+<footer>
+© 2026 Cracken
+</footer>
+
+<script>
+function toggleLauncher(){
+  const panel = document.getElementById("launcherPanel");
+  panel.style.display = panel.style.display === "block" ? "none" : "block";
+}
+
+window.addEventListener('click', e => {
+  const panel = document.getElementById("launcherPanel");
+  if(!panel.contains(e.target) && !e.target.classList.contains('launcher-btn')){
+    panel.style.display = 'none';
+  }
+});
+
+// OAuth Discord avec Client ID fixe et redirect URI
+function discordLogin(){
+  const clientId = '1482663475158188043';
+  const redirectUri = encodeURIComponent('http://localhost:5500/'); // URL exacte configurée dans Discord
+  const scope = encodeURIComponent('identify');
+  window.location = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+}
+
+// Récupère le token depuis l'URL et affiche pseudo + avatar
+function handleDiscordToken(){
+  if(window.location.hash.includes('access_token')){
+    const params = new URLSearchParams(window.location.hash.substring(1));
+    const token = params.get('access_token');
+    localStorage.setItem('discord_token', token); // stocke pour rechargement
+    fetchDiscordUser(token);
+  } else if(localStorage.getItem('discord_token')){
+    fetchDiscordUser(localStorage.getItem('discord_token'));
+  }
+}
+
+function fetchDiscordUser(token){
+  fetch('https://discord.com/api/users/@me', {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  .then(res => res.json())
+  .then(data => {
+    const discordText = document.getElementById('discordText');
+    const discordAvatar = document.getElementById('discordAvatar');
+    discordText.innerText = `${data.username}#${data.discriminator}`;
+    discordAvatar.src = `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=64`;
+    discordAvatar.style.display = 'inline-block';
+  })
+  .catch(err => {
+    console.error('Erreur Discord:', err);
+    localStorage.removeItem('discord_token'); // supprime token invalide
+  });
+}
+
+handleDiscordToken();
+
+const games=[
+  {name:"Cyberpunk 2077",img:"https://images.unsplash.com/photo-1542751371-adc38448a05e",desc:"Jeu RPG futuriste dans une immense ville ouverte.",popular:true},
+  {name:"Elden Ring",img:"https://images.unsplash.com/photo-1605902711622-cfb43c4437d1",desc:"Un RPG dark fantasy avec un immense monde ouvert.",popular:true},
+  {name:"Forza Horizon",img:"https://images.unsplash.com/photo-1511512578047-dfb367046420",desc:"Jeu de course réaliste avec voitures de luxe.",popular:false},
+  {name:"Minecraft",img:"https://images.unsplash.com/photo-1552820728-8b83bb6b773f",desc:"Jeu sandbox où tu peux construire ton monde.",popular:true}
+];
+
+const popularContainer=document.getElementById("popularGames");
+const allContainer=document.getElementById("allGames");
+
+function createCard(game){
+  const div=document.createElement("div");
+  div.className="game-card";
+  div.innerHTML=`<img src="${game.img}" alt="${game.name}"><h3>${game.name}</h3>`;
+  div.onclick=()=>openGame(game);
+  return div;
+}
+
+function loadGames(){
+  popularContainer.innerHTML="";
+  allContainer.innerHTML="";
+  for(const g of games){
+    allContainer.appendChild(createCard(g));
+    if(g.popular) popularContainer.appendChild(createCard(g));
+  }
+}
+
+function openGame(game){
+  document.getElementById("gameTitle").innerText=game.name;
+  document.getElementById("gameImage").src=game.img;
+  document.getElementById("gameImage").alt=game.name;
+  document.getElementById("gameDesc").innerText=game.desc;
+  document.getElementById("gamePage").style.display="block";
+}
+
+function closeGame(){
+  document.getElementById("gamePage").style.display="none";
+}
+
+document.getElementById("search").addEventListener("input",e=>{
+  const value=e.target.value.toLowerCase();
+  allContainer.innerHTML="";
+  for(const g of games){
+    if(g.name.toLowerCase().includes(value)){
+      allContainer.appendChild(createCard(g));
+    }
+  }
+});
+
+loadGames();
+</script>
+
+</body>
+</html>
